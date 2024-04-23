@@ -165,27 +165,58 @@ export default function Home() {
   };
 
   async function fetchPalette() {
-    // const res = await fetch("/api/palette?hex=374121-5d4538-477e92-c0b69e-163a60");
-    let url = `/api/palette?hex=${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`
-        url = url.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '')
-    
-    console.log('fetching new palette')
+    let url = `/api/palette`;
+    let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
+    hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
+  
+    console.log('fetching new palette');
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        method: 'POST', // Specify the method
+        headers: {
+          'Content-Type': 'application/json', // Specify the content type in the headers
+        },
+        body: JSON.stringify({ hex: hexCodes }), // Send the data as a JSON string in the body
+      });
+  
       if (!res.ok) {
         throw new Error(`Failed to fetch palette: ${res.statusText}`);
       }
+  
       const data = await res.json();
       setImages(data);
-      console.log('received and set new images')
+      console.log('received and set new images');
     } catch (error) {
       console.error('Error fetching new palette:', error);
     }
-  }
+  };
 
-  useEffect(() => {
+    useEffect(() => {
     fetchPalette();
   }, []);
+
+  // async function fetchPalette() {
+  //   // const res = await fetch("/api/palette?hex=374121-5d4538-477e92-c0b69e-163a60");
+  //   let url = `/api/palette?hex=${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`
+  //       url = url.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '')
+    
+  //   console.log('fetching new palette')
+  //   try {
+  //     const res = await fetch(url);
+  //     if (!res.ok) {
+  //       throw new Error(`Failed to fetch palette: ${res.statusText}`);
+  //     }
+  //     const data = await res.json();
+  //     setImages(data);
+  //     console.log('received and set new images')
+  //   } catch (error) {
+  //     console.error('Error fetching new palette:', error);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   fetchPalette();
+  // }, []);
 
   
 
@@ -221,7 +252,7 @@ export default function Home() {
             
             <div className='flex flex-col justify-center h-full gap-4 bg-black border-b-2 border-l-2 border-r-2 grow'>
               <button className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400' onClick={generateRandomPalette}>RANDOM</button>
-              {/* <button className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400' onClick={fetchPalette}>FETCH</button> */}
+              <button className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400' onClick={fetchPalette}>FETCH</button>
             </div>
 
           </div>
