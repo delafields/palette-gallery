@@ -100,7 +100,7 @@ const ImageCarousel = ({ images }) => {
         {images.map((image, index) => (
             <Image
               key={index}
-              src={image.url}
+              src={image.imageUrl}
               alt="image"
               layout="fill"
               objectFit="contain"
@@ -164,62 +164,58 @@ export default function Home() {
     fetchPalette();
   };
 
+
   async function fetchPalette() {
-    let url = `/api/palette`;
-    let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
-    hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
-  
+    // let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
+    //     hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
+    let hexCodes = "374121-5d4538-477e92-c0b69e-163a60"
+    let url = `/api/palette?hex=${encodeURIComponent(hexCodes)}`;
+
     console.log('fetching new palette');
     try {
-      const res = await fetch(url, {
-        method: 'POST', // Specify the method
-        headers: {
-          'Content-Type': 'application/json', // Specify the content type in the headers
-        },
-        body: JSON.stringify({ hex: hexCodes }), // Send the data as a JSON string in the body
-      });
-  
-      if (!res.ok) {
-        throw new Error(`Failed to fetch palette: ${res.statusText}`);
-      }
-  
-      const data = await res.json();
-      setImages(data);
-      console.log('received and set new images');
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        // console.log('Received data:', data);
+        setImages(data);
+
     } catch (error) {
-      console.error('Error fetching new palette:', error);
+        console.error('Error fetching new palette:', error);
     }
-  };
+};
+
+  // async function fetchPalette() {
+  //   let url = `/api/palette`;
+  //   let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
+  //   hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
+  
+  //   console.log('fetching new palette');
+  //   try {
+  //     const res = await fetch(url, {
+  //       method: 'POST', // Specify the method
+  //       headers: {
+  //         'Content-Type': 'application/json', // Specify the content type in the headers
+  //       },
+  //       body: JSON.stringify({ hex: hexCodes }), // Send the data as a JSON string in the body
+  //     });
+  
+  //     if (!res.ok) {
+  //       throw new Error(`Failed to fetch palette: ${res.statusText}`);
+  //     }
+  
+  //     const data = await res.json();
+  //     setImages(data);
+  //     console.log('received and set new images');
+  //   } catch (error) {
+  //     console.error('Error fetching new palette:', error);
+  //   }
+  // };
 
     useEffect(() => {
     fetchPalette();
   }, []);
-
-  // async function fetchPalette() {
-  //   // const res = await fetch("/api/palette?hex=374121-5d4538-477e92-c0b69e-163a60");
-  //   let url = `/api/palette?hex=${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`
-  //       url = url.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '')
-    
-  //   console.log('fetching new palette')
-  //   try {
-  //     const res = await fetch(url);
-  //     if (!res.ok) {
-  //       throw new Error(`Failed to fetch palette: ${res.statusText}`);
-  //     }
-  //     const data = await res.json();
-  //     setImages(data);
-  //     console.log('received and set new images')
-  //   } catch (error) {
-  //     console.error('Error fetching new palette:', error);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   fetchPalette();
-  // }, []);
-
-  
-
   
   return (
     <>
