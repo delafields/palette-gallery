@@ -112,9 +112,14 @@ const ImageCarousel = ({ images }) => {
         ))}
       </div>
 
-      {images[currentImageIndex].title
-        ? <div className='absolute bottom-0 flex items-center justify-center w-64 h-24 p-4 mb-10 bg-white right-10 drop-shadow-md'>
+      {
+      images[currentImageIndex].title
+        ? <div className='absolute bottom-0 flex flex-col items-center text-center gap-y-2 justify-center w-64 min-h-24 p-4 mb-10 bg-white right-10 drop-shadow-md'>
             <p className='font-bold text-black'>{images[currentImageIndex].title}</p>
+              {images[currentImageIndex].date && (
+                <p className='text-black text-xs'>{images[currentImageIndex].creator} ({images[currentImageIndex].date})</p>
+              )}
+              <p className='text-black text-[0.6rem] italic'>{images[currentImageIndex].partner}</p>
           </div>
         : <></>
       }
@@ -166,9 +171,10 @@ export default function Home() {
 
 
   async function fetchPalette() {
-    // let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
-    //     hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
-    let hexCodes = "374121-5d4538-477e92-c0b69e-163a60"
+    let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
+        hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
+    // let hexCodes = "374121-5d4538-477e92-c0b69e-163a60"
+
     let url = `/api/palette?hex=${encodeURIComponent(hexCodes)}`;
 
     console.log('fetching new palette');
@@ -178,45 +184,18 @@ export default function Home() {
             throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        // console.log('Received data:', data);
         setImages(data);
 
     } catch (error) {
         console.error('Error fetching new palette:', error);
     }
-};
+  };
 
-  // async function fetchPalette() {
-  //   let url = `/api/palette`;
-  //   let hexCodes = `${colors[1]}-${colors[2]}-${colors[3]}-${colors[4]}-${colors[5]}`;
-  //   hexCodes = hexCodes.replaceAll('#', '').replaceAll('-undefined', '').replaceAll('-null', '');
-  
-  //   console.log('fetching new palette');
-  //   try {
-  //     const res = await fetch(url, {
-  //       method: 'POST', // Specify the method
-  //       headers: {
-  //         'Content-Type': 'application/json', // Specify the content type in the headers
-  //       },
-  //       body: JSON.stringify({ hex: hexCodes }), // Send the data as a JSON string in the body
-  //     });
-  
-  //     if (!res.ok) {
-  //       throw new Error(`Failed to fetch palette: ${res.statusText}`);
-  //     }
-  
-  //     const data = await res.json();
-  //     setImages(data);
-  //     console.log('received and set new images');
-  //   } catch (error) {
-  //     console.error('Error fetching new palette:', error);
-  //   }
-  // };
-
-    useEffect(() => {
+  // run on component mount
+  useEffect(() => {
     fetchPalette();
   }, []);
-  
+
   return (
     <>
       <Head>
@@ -247,8 +226,16 @@ export default function Home() {
             ))}
             
             <div className='flex flex-col justify-center h-full gap-4 bg-black border-b-2 border-l-2 border-r-2 grow'>
-              <button className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400' onClick={generateRandomPalette}>RANDOM</button>
-              <button className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400' onClick={fetchPalette}>FETCH</button>
+              <button 
+                className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400'
+                onClick={generateRandomPalette}>
+                RANDOM
+              </button>
+              <button 
+                className='px-2 py-1 font-bold text-white rounded-lg hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-amber-200 to-yellow-400'
+                onClick={fetchPalette}>
+                FETCH
+                </button>
             </div>
 
           </div>
