@@ -1,14 +1,13 @@
 const axios = require('axios');
+const db = require('../../database');
+const clients = [];
 
-function processImageData(dataString) {
-    dataString = dataString.trim(); // Remove whitespace
+async function processImageData(dataString) {
+    dataString = dataString.trim();
     if (dataString.startsWith(')]}\',\n')) {
-        dataString = dataString.substring(5); // Adjust index based on actual characters to remove
+        dataString = dataString.substring(5);
     }
-
-    const imagesData = JSON.parse(dataString); // Now parse the cleaned string into JSON            
-
-    // Parse the data to exclude RGB palette information and keep other details
+    const imagesData = JSON.parse(dataString);
     return imagesData.map(image => ({
         id: image.id,
         imageUrl: image.imageUrl,
@@ -22,48 +21,73 @@ function processImageData(dataString) {
     }));
 }
 
-
 export default async function handler(req, res) {
-    if (req.method === 'GET') {
-        const { hex } = req.query;
+    const { hex } = req.query;
 
-        const db = require('../../database');
-
-        // sort the hex to check if we've already retrieved it
+    if (req.method === 'GET' && hex) {
         const sortedHex = hex.split('-').sort().join('-');
         const stmt = db.prepare('SELECT data FROM palette_data WHERE hex_codes = ?');
         const dbResult = stmt.get(sortedHex);
 
-        // If data exists in the database, send it directly
         if (dbResult) {
-            console.log('data found in db')
             let images = JSON.parse(dbResult.data);
-            res.status(200).json(images);
-            return;
-        }
-        // If not, fetch the data 
-        else {
-            console.log('data not found in db, fetching')
+            // Send SSE update
+            sendSSEImagesUpdate({ images, palette: sortedHex });
+            res.status(200).json({ images, palette: sortedHex });
+        } else {
             const ajaxUrl = `https://artsexperiments.withgoogle.com/artpalette/search/${hex}`;
-
             try {
                 const response = await axios.get(ajaxUrl, { responseType: 'text' });
+                let images = await processImageData(response.data);
+                const insertStmt = db.prepare('INSERT INTO palette_data (hex_codes, data) VALUES (?, ?)');
+                insertStmt.run(sortedHex, JSON.stringify(images));
+                
+                // Send SSE update
+                sendSSEImagesUpdate({ images, palette: sortedHex });
 
-                let images = processImageData(response.data);
-
-                // Write this data to the database
-                const stmt = db.prepare('INSERT INTO palette_data (hex_codes, data) VALUES (?, ?)');
-                stmt.run(sortedHex, JSON.stringify(images));
-
-                res.status(200).json(images);
-    
+                res.status(200).json({ images, palette: sortedHex });
             } catch (error) {
                 console.error('Error fetching images:', error);
                 res.status(500).json({ message: 'Failed to fetch images' });
             }
         }
-
+    } else if (req.method === 'GET' && req.headers.accept === 'text/event-stream') {
+        // SSE request, register client
+        registerClient(req, res);
     } else {
         res.status(405).send('Method Not Allowed');
     }
 }
+
+// Function to send SSE updates
+function sendSSEImagesUpdate(data) {
+    // console.log('SSE update sent');
+    clients.forEach(client => client.res.write(`data: ${JSON.stringify(data)}\n\n`));
+}
+
+export function registerClient(req, res) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    // This is a must. Really annoying issue described here https://github.com/vercel/next.js/issues/9965
+    res.setHeader('Content-Encoding', 'none');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Send a keep-alive message every 30 seconds
+    const intervalId = setInterval(() => {
+        res.write(':\n\n');
+    }, 30000);
+
+    // Clean up on connection close
+    req.on('close', () => {
+        clearInterval(intervalId);
+        const index = clients.findIndex(client => client.res === res);
+        if (index !== -1) {
+            clients.splice(index, 1);
+        }
+    });
+
+    // Register client
+    clients.push({ req, res });
+    console.log('added client, current client count', clients.length)
+}
+

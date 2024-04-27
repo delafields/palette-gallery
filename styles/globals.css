@@ -31,3 +31,10 @@ body {
     text-wrap: balance;
   }
 }
+
+.react-colorful__saturation,
+.react-colorful__hue,
+.react-colorful__last-control {
+  border-radius: 0 !important;
+}
+
