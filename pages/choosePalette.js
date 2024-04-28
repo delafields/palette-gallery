@@ -17,10 +17,10 @@ const ColorPicker = ({ index, color, onColorChange, generateHexCode }) => {
   const dynamicStyle = isClient ? { backgroundColor: color } : {};
 
   return (
-    <div className="relative w-1/5">
+    <div className="relative w-full">
       {color ? (
         <div
-          className="relative h-[150px] bg-slate-800 cursor-pointer"
+          className="h-[150px] bg-slate-800 cursor-pointer"
           style={dynamicStyle}
         >
           <div
@@ -31,7 +31,7 @@ const ColorPicker = ({ index, color, onColorChange, generateHexCode }) => {
             {showPicker && (
               <div className="absolute z-10 w-full">
                 <HexColorPicker
-                  style={{ width: "auto", height: "150px", borderRadius: "0" }}
+                  style={{ width: "100vw", height: "150px", position: "fixed", left: "50%", transform: "translateX(-50%)" }}
                   color={color}
                   onChange={handleColorChange}
                 />
@@ -144,36 +144,40 @@ export default function ChoosePalette() {
           />
         ))}
       </div>
-        
-      <div className='flex justify-center gap-64'>
-        {[
-          { label: 'RANDOM PALETTE', action: generateRandomPalette },
-          { label: 'FETCH IMAGES', action: fetchPalette }
-        ].map((button, index) => (
-          <button 
-            key={index}
-            className='h-32 w-64 bg-black hover:bg-slate-900 text-xl font-bold text-white'
-            onClick={button.action}>
-            {button.label}
-          </button>
-        ))}
-      </div>
 
-      <div className="flex w-full justify-center gap-32">
-        {[
-          { label: "Prev", symbol: "&larr;", action: 'prev' },
-          { label: "Favorite", symbol: "&#x2764;", action: 'favorite' },
-          { label: "Next", symbol: "&rarr;", action: 'next' }
-        ].map((item, index) => (
-          <div key={index} className="flex flex-col items-center hover:text-gray-600">
-            <span className="text-sm">{item.label}</span>
+      <div className="flex flex-col gap-y-8">
+        
+        <div className='flex justify-center gap-x-4'>
+          {[
+            { label: 'RANDOM PALETTE', action: generateRandomPalette },
+            { label: 'FETCH IMAGES', action: fetchPalette }
+          ].map((button, index) => (
             <button 
-              className="text-4xl" 
-              dangerouslySetInnerHTML={{ __html: item.symbol }}
-              onClick={() => sendAction(item.action)}
-              ></button>
-          </div>
-        ))}
+              key={index}
+              className='h-24 px-4 bg-black hover:bg-slate-900 text-xl font-bold text-white'
+              onClick={button.action}>
+              {button.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex w-full justify-center gap-24 mb-8">
+          {[
+            { label: "Prev", symbol: "&larr;", action: 'prev' },
+            { label: "Favorite", symbol: "&#x2764;", action: 'favorite' },
+            { label: "Next", symbol: "&rarr;", action: 'next' }
+          ].map((item, index) => (
+            <div key={index} className="flex flex-col items-center hover:text-gray-600">
+              <span className="text-sm">{item.label}</span>
+              <button 
+                className="text-4xl" 
+                dangerouslySetInnerHTML={{ __html: item.symbol }}
+                onClick={() => s(item.action)}
+                ></button>
+            </div>
+          ))}
+        </div>
+            
       </div>
 
     </div>
