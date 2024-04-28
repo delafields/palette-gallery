@@ -38,15 +38,15 @@ export default function GalleryPage() {
   const [palette, setPalette] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const handlePrevClick = useCallback(() => {
-    const prevIndex = currentImageIndex === 0 ? images.length - 1 : currentImageIndex - 1;
-    setCurrentImageIndex(prevIndex);
-  }, [currentImageIndex, images.length]);
+  // const handlePrevClick = useCallback(() => {
+  //   const prevIndex = currentImageIndex === 0 ? images.length - 1 : currentImageIndex - 1;
+  //   setCurrentImageIndex(prevIndex);
+  // }, [currentImageIndex, images.length]);
 
-  const handleNextClick = useCallback(() => {
-    const nextIndex = currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1;
-    setCurrentImageIndex(nextIndex);
-  }, [currentImageIndex, images.length]);
+  // const handleNextClick = useCallback(() => {
+  //   const nextIndex = currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1;
+  //   setCurrentImageIndex(nextIndex);
+  // }, [currentImageIndex, images.length]);
 
   const handleFavorite = async (image) => {
     try {
@@ -71,10 +71,10 @@ export default function GalleryPage() {
   };
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/palette');
+    const paletteEventSource = new EventSource('/api/palette');
 
-    eventSource.onmessage = function(event) {
-        // console.log('onmessage triggered', event.data);
+    paletteEventSource.onmessage = function(event) {
+        // console.log('onmessage triggered for new images', event.data);
         const eventData = JSON.parse(event.data);
         const updatedPalette = eventData.palette;
         const updatedImages = eventData.images;
@@ -86,14 +86,14 @@ export default function GalleryPage() {
 
     // Clean up SSE connection on component unmount
     return () => {
-        eventSource.close();
+      paletteEventSource.close();
     };
   }, []);
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/carousel');
+    const carouselEventSource = new EventSource('/api/carousel');
 
-    eventSource.onmessage = function(event) {
+    carouselEventSource.onmessage = function(event) {
       const data = JSON.parse(event.data);
       const { action } = data;
 
@@ -112,7 +112,7 @@ export default function GalleryPage() {
     };
 
     return () => {
-      eventSource.close();
+      carouselEventSource.close();
     };
   }, [currentImageIndex]);
 

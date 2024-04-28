@@ -172,7 +172,7 @@ export default function ChoosePalette() {
               <button 
                 className="text-4xl" 
                 dangerouslySetInnerHTML={{ __html: item.symbol }}
-                onClick={() => s(item.action)}
+                onClick={() => sendAction(item.action)}
                 ></button>
             </div>
           ))}

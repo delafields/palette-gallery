@@ -1,5 +1,5 @@
 const axios = require('axios');
-const db = require('../../database');
+import supabase from '../../database';
 const clients = [];
 
 async function processImageData(dataString) {
@@ -26,32 +26,40 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET' && hex) {
         const sortedHex = hex.split('-').sort().join('-');
-        const stmt = db.prepare('SELECT data FROM palette_data WHERE hex_codes = ?');
-        const dbResult = stmt.get(sortedHex);
+        try {
+            let { data: dbResult, error } = await supabase
+                .from('palette_data')
+                .select('data')
+                .eq('hex_codes', sortedHex)
+                .single();
 
-        if (dbResult) {
-            let images = JSON.parse(dbResult.data);
-            // Send SSE update
-            sendSSEImagesUpdate({ images, palette: sortedHex });
-            res.status(200).json({ images, palette: sortedHex });
-        } else {
-            const ajaxUrl = `https://artsexperiments.withgoogle.com/artpalette/search/${hex}`;
-            try {
+            // this will throw if there's no match in the db
+            // if (error) throw error;
+
+            if (dbResult) {
+                let images = JSON.parse(dbResult.data);
+                sendSSEImagesUpdate({ images, palette: sortedHex });
+                res.status(200).json({ images, palette: sortedHex });
+            } else {
+                const ajaxUrl = `https://artsexperiments.withgoogle.com/artpalette/search/${hex}`;
                 const response = await axios.get(ajaxUrl, { responseType: 'text' });
                 let images = await processImageData(response.data);
-                const insertStmt = db.prepare('INSERT INTO palette_data (hex_codes, data) VALUES (?, ?)');
-                insertStmt.run(sortedHex, JSON.stringify(images));
-                
-                // Send SSE update
-                sendSSEImagesUpdate({ images, palette: sortedHex });
+                const { error: insertError } = await supabase
+                    .from('palette_data')
+                    .insert([
+                        { hex_codes: sortedHex, data: JSON.stringify(images) }
+                    ]);
 
+                if (insertError) throw insertError;
+
+                sendSSEImagesUpdate({ images, palette: sortedHex });
                 res.status(200).json({ images, palette: sortedHex });
-            } catch (error) {
-                console.error('Error fetching images:', error);
-                res.status(500).json({ message: 'Failed to fetch images' });
             }
+        } catch (error) {
+            console.error('Error:', error.message);
+            res.status(500).json({ message: 'Failed to fetch images' });
         }
-    } else if (req.method === 'GET' && req.headers.accept === 'text/event-stream') {
+    }  else if (req.method === 'GET' && req.headers.accept === 'text/event-stream') {
         // SSE request, register client
         registerClient(req, res);
     } else {
