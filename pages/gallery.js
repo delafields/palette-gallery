@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/legacy/image";
+import Pusher from 'pusher-js';
 
 const ImageCarousel = ({ images, currentImageIndex }) => {
 
@@ -38,16 +39,6 @@ export default function GalleryPage() {
   const [palette, setPalette] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // const handlePrevClick = useCallback(() => {
-  //   const prevIndex = currentImageIndex === 0 ? images.length - 1 : currentImageIndex - 1;
-  //   setCurrentImageIndex(prevIndex);
-  // }, [currentImageIndex, images.length]);
-
-  // const handleNextClick = useCallback(() => {
-  //   const nextIndex = currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1;
-  //   setCurrentImageIndex(nextIndex);
-  // }, [currentImageIndex, images.length]);
-
   const handleFavorite = async (image) => {
     try {
       const { creator = '', title = '', imageUrl = '' } = image;
@@ -70,33 +61,44 @@ export default function GalleryPage() {
     }
   };
 
+  const fetchPaletteData = async (id) => {
+    try {
+        const response = await fetch(`/api/fetchImages?id=${id}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch palette data');
+        }
+        const data = await response.json();
+        setImages(JSON.parse(data.data));
+        setPalette(data.hex_codes);
+    } catch (error) {
+        console.error('Error fetching palette data:', error);
+    }
+};
+
   useEffect(() => {
-    const paletteEventSource = new EventSource('/api/palette');
-
-    paletteEventSource.onmessage = function(event) {
-        // console.log('onmessage triggered for new images', event.data);
-        const eventData = JSON.parse(event.data);
-        const updatedPalette = eventData.palette;
-        const updatedImages = eventData.images;
-
-        // Update palette and images state
-        setPalette(updatedPalette);
-        setImages(updatedImages);
-    };
-
-    // Clean up SSE connection on component unmount
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER
+    });
+  
+    const channel = pusher.subscribe('palette-channel');
+    channel.bind('palette-update', function(data) {
+      fetchPaletteData(data.id);
+    });
+  
     return () => {
-      paletteEventSource.close();
+      channel.unbind_all();
+      channel.unsubscribe();
     };
   }, []);
 
+
   useEffect(() => {
-    const carouselEventSource = new EventSource('/api/carousel');
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER
+    });
 
-    carouselEventSource.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      const { action } = data;
-
+    const channel = pusher.subscribe('carousel');
+    channel.bind('carousel-update', function({ action }) {
       if (action === 'next') {
         const nextIndex = currentImageIndex === images.length - 1 ? 0 : currentImageIndex + 1;
         setCurrentImageIndex(nextIndex);
@@ -109,10 +111,11 @@ export default function GalleryPage() {
         let currentImage = images[currentImageIndex];
         handleFavorite(currentImage);
       }
-    };
+    });
 
     return () => {
-      carouselEventSource.close();
+      channel.unbind_all();
+      channel.unsubscribe();
     };
   }, [currentImageIndex]);
 
