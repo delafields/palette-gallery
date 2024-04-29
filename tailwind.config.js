@@ -11,6 +11,8 @@ module.exports = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "beige-paper": "url('/beige-paper.png')",
+        "groove-paper": "url('/groovepaper.png')",
       },
       animation: {
         'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',

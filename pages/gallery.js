@@ -121,7 +121,7 @@ export default function GalleryPage() {
 
 
   return (
-    <div className="flex flex-col justify-between items-center h-screen bg-amber-50 bg-fuzzy-500">
+    <div className="flex flex-col justify-between items-center h-screen bg-amber-50 bg-groove-paper">
         {images.length > 0 ? (
           <ImageCarousel images={images} currentImageIndex={currentImageIndex} />
         ) : (
