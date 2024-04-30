@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Head from "next/head";
 import Image from "next/legacy/image";
 import Pusher from 'pusher-js';
 
@@ -22,10 +23,10 @@ const ImageCarousel = ({ images, currentImageIndex }) => {
       </div>
 
       {images[currentImageIndex].title && (
-        <div className='flex flex-col items-center text-center gap-y-2 justify-center w-64 min-h-24 p-4 bg-white drop-shadow-md'>
+        <div className='flex flex-col items-center justify-center w-64 p-4 text-center bg-white gap-y-2 min-h-24 drop-shadow-md'>
           <p className='font-bold text-black'>{images[currentImageIndex].title}</p>
           {images[currentImageIndex].date && (
-            <p className='text-black text-xs'>{images[currentImageIndex].creator} ({images[currentImageIndex].date})</p>
+            <p className='text-xs text-black'>{images[currentImageIndex].creator} ({images[currentImageIndex].date})</p>
           )}
           <p className='text-black text-[0.6rem] italic'>{images[currentImageIndex].partner}</p>
         </div>
@@ -121,17 +122,35 @@ export default function GalleryPage() {
 
 
   return (
-    <div className="flex flex-col justify-between items-center h-screen bg-amber-50 bg-groove-paper">
+    <>
+      <Head>
+        <title>Palette Gallery</title>
+        <meta name="description" content="Choose a palette from the gallery" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>🎨</text></svg>" />
+      </Head>
+      <div className={`flex flex-col items-center justify-between h-screen ${images.length > 0 ? 'bg-amber-50 bg-groove-paper' : 'bg-black'}`}>
         {images.length > 0 ? (
           <ImageCarousel images={images} currentImageIndex={currentImageIndex} />
         ) : (
-          <p>Loading images...</p>
+          // <div className="relative w-full h-full">
+          //     <div className="absolute h-32 bg-no-repeat bg-contain w-52 bg-cloud animate-clouds-move" style={{ top: '10%', left: '10%' }}></div>
+          //     <div className="absolute h-32 bg-no-repeat bg-contain w-52 bg-cloud animate-clouds-move" style={{ top: '30%', left: '50%' }}></div>
+          //     <div className="absolute h-32 bg-no-repeat bg-contain w-52 bg-cloud animate-clouds-move" style={{ top: '50%', left: '20%' }}></div>
+          //     <div className="absolute h-32 bg-no-repeat bg-contain w-52 bg-cloud animate-clouds-move" style={{ top: '70%', left: '70%' }}></div>
+          //     <div className="absolute h-32 bg-no-repeat bg-contain w-52 bg-cloud animate-clouds-move" style={{ top: '85%', left: '0%' }}></div>
+          // </div>
+          <div className="relative w-full h-full">
+            <div className="absolute w-1/2 bg-no-repeat bg-contain h-1/2 bg-cloud animate-clouds-move" style={{ top: '40%', left: '10%' }}></div>
+          </div>
         )}
-      <div className="w-full h-16 flex">
+      <div className="flex w-full h-16">
         {palette.split('-').map((color, index) => (
           <div key={index} style={{ backgroundColor: `#${color}`, flex: 1 }} />
         ))}
       </div>
     </div>
+    </>
+
   );
 }
